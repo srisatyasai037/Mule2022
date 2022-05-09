@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
+	<cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="9ab74512-61e6-455b-b6cc-78072deefef2" >
+		<cloudhub:connection username="madaka94" password="Ganesh@11" environment="4d2bc714-74c5-4416-b80a-ce4d08d1adab" />
+	</cloudhub:config>
+	<sub-flow name="NotificationFlow" doc:id="b52fa0b5-d7b9-4230-b9e5-4bae760068cc" >
+		<logger level="INFO" doc:name="Logger" doc:id="397f170c-118c-44e5-be46-e42ef0386625" message="calling notification flow" />
+		<cloudhub:create-notification doc:name="Create Notification" doc:id="9fdfc8c4-3094-4fae-9ced-0529a48c49ce" config-ref="CloudHub_Config" domain="raml-policy" priority="ERROR">
+		</cloudhub:create-notification>
+	</sub-flow>
+</mule>

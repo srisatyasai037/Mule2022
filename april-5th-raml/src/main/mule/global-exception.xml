@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="bc218968-4e19-470a-9afd-4f1eccac1187" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="mule5hyd@gmail.com" password="kyvkkruxcwsihmrg" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<error-handler name="global-exceptionError_Handler" doc:id="e45b961c-412b-4192-9c7b-95e170538801" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c2ce3f8b-4b76-4407-b1bb-c9befd5dafa8" type="DB:BAD_SQL_SYNTAX, DB:CONNECTIVITY, DB:QUERY_EXECUTION,MULE:RETRY_EXHAUSTED" >
+			<logger level="INFO" doc:name="Logger" doc:id="5f463c4d-9b66-4079-a8e1-ee8de9440392" message="error flow" />
+			<ee:transform doc:name="Transform Message" doc:id="5f8c193c-2770-4357-b495-838aa9e2db6b" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status code":500,
+	"isssue":"this is database isssue,some maintance is going on,Please try again!"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="78f6a9d8-33ca-4697-9bad-c0ac0733735f" name="NotificationFlow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="57057f46-da53-4b0b-8332-eb0d2be90df4" type="MULE:EXPRESSION" >
+			<logger level="INFO" doc:name="Logger" doc:id="31436e89-3d87-48d1-bb10-59f7c0d50704" message="errror floe" />
+			<ee:transform doc:name="Transform Message" doc:id="590925db-e8cf-4bb6-b9ce-0ac29e564d10" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"statuscode":"500",
+	"issues":"this is some other issues,we are looking into this::"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="a027bc42-3bc5-46b5-b3cc-cbd9bc375fe8" name="NotificationFlow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="Error Propagate" doc:id="d75f8558-a73c-462c-adc5-7cd283701af7" type="INVALID:DEPT_ID" >
+			<logger level="INFO" doc:name="Logger" doc:id="1aeca41d-1982-4c81-ae7c-cf9108a9c935" message="error flow" />
+			<ee:transform doc:name="Transform Message" doc:id="4779cd48-aecf-447b-a1c1-811abafc1681" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status code":500,
+	"isssue":"please enter correct dept id:::"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="fde40bc5-a3b5-4109-97e2-8a0ed2ee7101" name="NotificationFlow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="70d05e1a-7f12-494b-8d06-6303ad420256" >
+			<logger level="INFO" doc:name="Logger" doc:id="163f835c-3e82-44a2-8c19-737e532e54cb" message="error flow" />
+			<ee:transform doc:name="Transform Message" doc:id="920837a6-7aae-4946-b76e-15fc00e966ef" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status code":500,
+	"isssue":"this is some code level issue,please try after some time::"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="7420be4b-12e7-431b-aa6d-daee222d7a43" name="NotificationFlow"/>
+		</on-error-propagate>
+	</error-handler>
+</mule>

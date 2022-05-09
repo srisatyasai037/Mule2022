@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<flow name="selectflow" doc:id="b72551c1-8b6f-4ec7-bdf7-fd0a58d42b67" >
+		<until-successful maxRetries="${retry}" doc:name="Until Successful" doc:id="034d5af5-d2d9-4c1f-ae69-890f3bdc0e05" millisBetweenRetries="${time}" >
+			<try doc:name="Try" doc:id="e9aae66b-fcea-4fb5-87bc-19ac38515a6d" >
+				<db:select doc:name="Select" doc:id="f2f43e4d-7780-4202-9727-f6ae14e3101c" config-ref="Database_Config">
+				<db:sql><![CDATA[SELECT * FROM employee.location where ename= :eskill;]]></db:sql>
+				<db:input-parameters><![CDATA[#[{
+	"eskill":attributes.queryParams.dept
+}]]]></db:input-parameters>
+			</db:select>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5a7ebaeb-7a6c-4a00-978c-fa6577aa7d1c" type="DB:CONNECTIVITY">
+						<logger level="INFO" doc:name="Logger" doc:id="68a9f53b-bed2-4151-8a97-03b5e699c238" message="connector level error"/>
+						<ee:transform doc:name="Transform Message" doc:id="ff2087c2-f8ec-4971-8d44-0d2e337ecad8" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"statuscode":500,
+	"issue":"this is database issues:;;"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-propagate>
+				</error-handler>
+			</try>
+			<logger level="INFO" doc:name="Logger" doc:id="e7a37a5a-2edc-4774-b48f-666d33c15c55" message="flow1 #[payload]" />
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="48cb51dd-a897-44fa-a528-652b9e3847df" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Insertflow" doc:id="b57a2f54-e643-4f52-abbc-eeae0f5d1633" >
+		<until-successful maxRetries="${retry}" doc:name="Until Successful" doc:id="82fdd960-2631-43bf-b5fa-9f7e021279f2" millisBetweenRetries="${time}" >
+			<try doc:name="Try" doc:id="964dc3fb-66e9-4894-91a2-8500b58abbeb" >
+				<db:insert doc:name="Insert" doc:id="6cbdafc5-33f0-4cff-845a-f2382c285a01" config-ref="Database_Config">
+				<db:sql><![CDATA[INSERT INTO `employee`.`location` (`eid`, `ename`) VALUES (:eid, :ename);]]></db:sql>
+				<db:input-parameters><![CDATA[#[{
+	"eid":payload.empid,
+	"ename":payload.empname
+}]]]></db:input-parameters>
+			</db:insert>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9535ca81-4b07-4e45-9883-77c678f772e3" />
+				</error-handler>
+			</try>
+			<try doc:name="Try" doc:id="761697fb-2eaf-45c1-8755-15da9161cadb" >
+				<logger level="INFO" doc:name="Logger" doc:id="47e68668-f19c-464a-a273-9c8a9a5eb699" message="#[payload]" />
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="997c94b3-514e-4cf2-8640-986a58a0c689" />
+				</error-handler>
+			</try>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="1146b681-c1da-4dc2-998f-d099eea4d396" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="Updateflow" doc:id="6e9129c5-8f33-4246-91eb-31b77e4bcdf4" >
+		<until-successful maxRetries="${retry}" doc:name="Until Successful" doc:id="dca91c0c-4df0-480c-827d-9db4fe614235" millisBetweenRetries="${time}" >
+			<db:update doc:name="Update" doc:id="7059e9b7-60ab-4113-ab76-3f16ff0485bd" config-ref="Database_Config" >
+				<db:sql ><![CDATA[UPDATE `employee`.`location` SET `ename` = 'shiva' WHERE (`eid` = '100');]]></db:sql>
+			</db:update>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="693ace56-f718-479d-baad-0b050d24d034" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="Deleteflow" doc:id="8299ffbd-9534-485a-b4b8-9754ca29ab50" >
+		<db:delete doc:name="Delete" doc:id="e2ce1a79-e913-4e9e-bf38-6221c0b5066c" config-ref="Database_Config">
+				<db:sql><![CDATA[DELETE FROM `employee`.`location` WHERE (`eid` = '102');]]></db:sql>
+			</db:delete>
+		<logger level="INFO" doc:name="Logger" doc:id="f58cecf3-454d-49bf-b27e-c66e019c5ca1" message="deleted record" />
+		<ee:transform doc:name="Transform Message" doc:id="42ce3037-c8bd-4821-8a22-dddfde960a3f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

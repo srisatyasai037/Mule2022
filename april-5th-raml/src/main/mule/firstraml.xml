@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="firstraml-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="firstraml-config" api="firstraml.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    
+	
+	
+	<flow name="firstraml-main">
+        <http:listener config-ref="firstraml-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="firstraml-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\Product:application\json:firstraml-config">
+		<logger level="INFO" doc:name="Flow started" doc:id="b6e57a45-701e-457a-8b61-6bd93709521b" message="flow begaining::"/>
+		<flow-ref doc:name="Flow Reference" doc:id="b9012250-78d1-4d9e-bcbb-2dbc516594dd" name="Updateflow"/>
+		<error-handler ref="global-exceptionError_Handler" />
+    </flow>
+    <flow name="delete:\Product:application\json:firstraml-config">
+		<logger level="INFO" doc:name="Flow Started" doc:id="3116d6e5-cfb6-4369-97b1-922c65aeb423" message="flow begaing:::"/>
+		<flow-ref doc:name="Flow Reference" doc:id="f7e4944b-de19-4642-9bde-7af1aad4e129" name="Deleteflow"/>
+		<error-handler ref="global-exceptionError_Handler" />
+    </flow>
+    <flow name="get:\Product:firstraml-config">
+		<logger level="INFO" doc:name="Flow Started" doc:id="2cb7a19c-8a38-4552-a4dc-98d553bec023" message="flow begainng  #[payload123]"/>
+		<choice doc:name="Choice" doc:id="c351b5f1-0888-4c65-8c63-83781b6fd629" >
+			<when expression="#[attributes.queryParams.dept == 'java']">
+				<logger level="INFO" doc:name="Logger" doc:id="165cb1c7-03f9-4581-9085-2b351e1aa048" message="sucess case"/>
+				<flow-ref doc:name="Flow Reference" doc:id="03577806-a06e-491b-a85a-6d4503452661" name="selectflow" />
+			</when>
+			<when expression="#[attributes.queryParams.dept == 'sap']">
+				<logger level="INFO" doc:name="Logger" doc:id="eb52b5bc-0e40-4662-845d-b8d24ef1dba4" />
+			</when>
+			<when expression="#[attributes.queryParams.dept == 'mulesoft']">
+				<logger level="INFO" doc:name="Logger" doc:id="f3c8ec00-e76e-46e9-88a2-c877999e1b52" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="39fdf3b1-a7a6-40d4-a8c3-cc20c0fdc522" message="error case::"/>
+				<raise-error doc:name="Raise error" doc:id="995828f7-55bb-49e5-8039-9731d12733f2" type="INVALID:DEPT_ID" description="entering the invalid the dept id"/>
+			</otherwise>
+		</choice>
+		<error-handler ref="global-exceptionError_Handler" />
+    </flow>
+    <flow name="post:\Product:application\json:firstraml-config">
+		<logger level="INFO" doc:name="Flow Started" doc:id="bc516156-8891-4a45-96d5-9e2639618cde" message="flow begaining"/>
+		<flow-ref doc:name="Flow Reference" doc:id="4c9f73a1-676f-4239-a053-aebd67b9d95e" name="Insertflow"/>
+		<error-handler ref="global-exceptionError_Handler" />
+    </flow>
+</mule>
