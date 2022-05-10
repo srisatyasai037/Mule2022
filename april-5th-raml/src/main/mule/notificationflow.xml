@@ -9,7 +9,7 @@ http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule
 		<cloudhub:connection username="madaka94" password="Ganesh@11" environment="4d2bc714-74c5-4416-b80a-ce4d08d1adab" />
 	</cloudhub:config>
 	<sub-flow name="NotificationFlow" doc:id="b52fa0b5-d7b9-4230-b9e5-4bae760068cc" >
-		<logger level="INFO" doc:name="Logger" doc:id="397f170c-118c-44e5-be46-e42ef0386625" message="calling notification flow stated:::" />
+		<logger level="INFO" doc:name="Logger" doc:id="397f170c-118c-44e5-be46-e42ef0386625" message="calling notification flow stated::::::::" />
 		<cloudhub:create-notification doc:name="Create Notification" doc:id="9fdfc8c4-3094-4fae-9ced-0529a48c49ce" config-ref="CloudHub_Config" domain="raml-policy" priority="ERROR">
 		</cloudhub:create-notification>
 	</sub-flow>
