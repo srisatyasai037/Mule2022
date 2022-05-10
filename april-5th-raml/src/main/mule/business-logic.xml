@@ -33,7 +33,7 @@ output application/json
 					</on-error-propagate>
 				</error-handler>
 			</try>
-			<logger level="INFO" doc:name="Logger" doc:id="e7a37a5a-2edc-4774-b48f-666d33c15c55" message="flow1 #[payload]" />
+			<logger level="INFO" doc:name="Logger" doc:id="e7a37a5a-2edc-4774-b48f-666d33c15c55" message="flow:::: #[payload]" />
 		</until-successful>
 		<ee:transform doc:name="Transform Message" doc:id="48cb51dd-a897-44fa-a528-652b9e3847df" >
 			<ee:message >
